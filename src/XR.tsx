@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import * as React from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ARButton } from './webxr/ARButton'
-import { VRButton } from './webxr/VRButton'
+import { Canvas, RenderProps, useFrame, useThree } from '@react-three/fiber'
 import { XRController } from './XRController'
-import { Props as ContainerProps } from '@react-three/fiber/dist/declarations/src/web/Canvas'
 import { InteractionManager, InteractionsContext } from './Interactions'
 import { Group, Matrix4, XRFrame, XRHandedness, XRHitTestResult, XRHitTestSource, XRInputSourceChangeEvent, XRReferenceSpace } from 'three'
+import { PropsWithChildren, useEffect, useRef } from 'react'
+import { useRegisterWebXRManager } from './XRSessionManager'
 
 export interface XRContextValue {
   controllers: XRController[]
@@ -151,29 +150,28 @@ export function XR(props: { children: React.ReactNode }) {
   )
 }
 
-function XRCanvas({ children, ...rest }: ContainerProps) {
-  return (
-    <Canvas vr {...rest}>
-      <XR>
-        <InteractionManager>{children}</InteractionManager>
-      </XR>
-    </Canvas>
-  )
-}
+export function XRCanvas({ children, onCreated, ...rest }: PropsWithChildren<RenderProps<HTMLCanvasElement>>) {
+  const registerWebXRManager = useRegisterWebXRManager()
 
-export function VRCanvas({ children, ...rest }: ContainerProps) {
-  return (
-    <XRCanvas onCreated={({ gl }) => void document.body.appendChild(VRButton.createButton(gl))} {...rest}>
-      {children}
-    </XRCanvas>
-  )
-}
+  const destroyFunction = useRef<() => void>()
 
-export function ARCanvas({ children, sessionInit, ...rest }: ContainerProps & { sessionInit?: any }) {
+  //unregisters the current webxr manager
+  useEffect(() => destroyFunction.current, [])
+
   return (
-    <XRCanvas onCreated={({ gl }) => void document.body.appendChild(ARButton.createButton(gl, sessionInit))} {...rest}>
-      {children}
-    </XRCanvas>
+      <Canvas
+          onCreated={(state) => {
+              if (onCreated != null) {
+                  onCreated(state)
+              }
+              destroyFunction.current = registerWebXRManager(state.gl.xr)
+          }}
+          vr
+          {...rest}>
+          <XR>
+              <InteractionManager>{children}</InteractionManager>
+          </XR>
+      </Canvas>
   )
 }
 

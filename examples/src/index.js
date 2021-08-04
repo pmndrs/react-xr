@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom'
 import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react'
 import {
-  VRCanvas,
+  XRCanvas,
   useXREvent,
   Hands,
   Select,
@@ -10,8 +10,10 @@ import {
   Interactive,
   RayGrab,
   useHitTest,
-  ARCanvas,
   DefaultXRControllers,
+  XRSessionManager,
+  XRButton,
+  useAvailableXRSessionModes,
 } from '@react-three/xr'
 // import { OrbitControls, Sky, Text, Plane, Box } from '@react-three/drei'
 import { Box, Sky, Text } from '@react-three/drei'
@@ -59,18 +61,58 @@ function HitTestExample() {
 
 function App() {
   return (
-    <VRCanvas>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[5, 5, 5]} />
+    <XRSessionManager>
+      <XRCanvas>
+        <ambientLight intensity={0.5} />
+        <pointLight position={[5, 5, 5]} />
 
-      <Hands
-      // modelLeft={"https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/left-hand-black-webxr-tracking-ready/model.gltf"}
-      // modelRight={"https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/right-hand-black-webxr-tracking-ready/model.gltf"}
-      />
-      <Button position={[0, 0.8, -1]} />
-      <DefaultXRControllers />
-      {/* <HitTestExample /> */}
-    </VRCanvas>
+        <Hands
+        // modelLeft={"https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/left-hand-black-webxr-tracking-ready/model.gltf"}
+        // modelRight={"https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/right-hand-black-webxr-tracking-ready/model.gltf"}
+        />
+        <Button position={[0, 0.8, -1]} />
+        <DefaultXRControllers />
+        {/* <HitTestExample /> */}
+      </XRCanvas>
+      <EnterButton />
+    </XRSessionManager>
+  )
+}
+
+const interestedSessions = ['immersive-ar', 'immersive-vr']
+
+function EnterButton() {
+  const availableXRSessionModes = useAvailableXRSessionModes(interestedSessions)
+
+  const sessionMode = useMemo(
+    () => (availableXRSessionModes != null ? availableXRSessionModes[0] : undefined),
+    [availableXRSessionModes]
+  )
+
+  if (sessionMode == null) {
+    return null
+  }
+
+  return (
+    <XRButton
+      style={{
+        cursor: 'pointer',
+        background: '#fff',
+        color: '#000',
+        padding: '1rem 1.5rem',
+        borderRadius: '1rem',
+        position: 'absolute',
+        left: '50%',
+        transform: 'translate(-50%, 0)',
+        bottom: '10vh',
+        zIndex: 1,
+      }}
+      sessionMode={sessionMode}
+      sessionInit={{
+        optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'],
+      }}>
+      ENTER {sessionMode.toUpperCase()}
+    </XRButton>
   )
 }
 
