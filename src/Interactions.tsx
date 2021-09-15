@@ -109,7 +109,9 @@ export function InteractionManager({ children }: { children: any }) {
   const triggerEvent = (interaction: XRInteractionType) => (e: XREvent) => {
     const hovering = hoverState[e.controller.inputSource.handedness]
     for (const hovered of hovering.keys()) {
-      ObjectsState.get(interactions, hovered, interaction)?.forEach((handler) => handler({ controller: e.controller }))
+      ObjectsState.get(interactions, hovered, interaction)?.forEach((handler) =>
+        handler({ controller: e.controller, intersection: hovering.get(hovered) })
+      )
     }
   }
 
