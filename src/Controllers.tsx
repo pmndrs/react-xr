@@ -6,6 +6,8 @@ import { XRController } from './XRController'
 import { useIsomorphicLayoutEffect } from './utils'
 import { XRControllerModel, XRControllerModelFactory } from './XRControllerModelFactory'
 import { XRControllerEvent } from './XREvents'
+import { type Object3D } from 'three'
+import { type MotionController } from 'three-stdlib'
 
 export interface RayProps extends Partial<JSX.IntrinsicElements['object3D']> {
   /** The XRController to attach the ray to */
@@ -75,6 +77,38 @@ class ControllerModel extends THREE.Group {
     this.target.controller.removeEventListener('connected', this._onConnected)
     this.target.controller.removeEventListener('disconnected', this._onDisconnected)
   }
+}
+
+function getObjectByPredicate(root: Object3D, predicate: (obj: Object3D) => boolean): Object3D | undefined {
+  // debugger
+  if (predicate(root)) return root
+
+  for (let i = 0, l = root.children.length; i < l; i++) {
+    const child = root.children[i]
+    const object = getObjectByPredicate(child, predicate)
+
+    if (object !== undefined) {
+      return object
+    }
+  }
+
+  return undefined
+}
+
+export const useMotionControllers = () => {
+  const [motionControllers, setMotionControllers] = React.useState([] as MotionController[])
+  const controllers = useXR((state) => state.controllers)
+
+  useFrame(() => {
+    const mcs = controllers.map(
+      (c) => (getObjectByPredicate(c.grip, (o) => 'xrControllerModel' in o) as any)?.xrControllerModel.motionController as MotionController
+    ).filter(Boolean)
+    if (mcs.length !== motionControllers.length) {
+      setMotionControllers(mcs)
+    }
+  })
+
+  return motionControllers
 }
 
 declare global {
