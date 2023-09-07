@@ -15,17 +15,21 @@ export type TeleportCallback = (target: THREE.Vector3 | THREE.Vector3Tuple) => v
  */
 export function useTeleportation(): TeleportCallback {
   const frame = React.useRef<XRFrame>()
+  const session = React.useRef<XRSession | null>()
   const baseReferenceSpace = React.useRef<XRReferenceSpace | null>(null)
   const teleportReferenceSpace = React.useRef<XRReferenceSpace | null>(null)
 
   useFrame((state, _, xrFrame) => {
     frame.current = xrFrame
 
-    const referenceSpace = state.gl.xr.getReferenceSpace()
-    baseReferenceSpace.current ??= referenceSpace
+    const xrSession = state.gl.xr.getSession()
+    if (xrSession && session.current !== xrSession) {
+      baseReferenceSpace.current = state.gl.xr.getReferenceSpace()
+      session.current = xrSession
+    }
 
     const teleportOffset = teleportReferenceSpace.current
-    if (teleportOffset && referenceSpace !== teleportOffset) {
+    if (teleportOffset && baseReferenceSpace.current !== teleportOffset) {
       state.gl.xr.setReferenceSpace(teleportOffset)
     }
   })
