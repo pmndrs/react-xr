@@ -12,7 +12,7 @@ import { createXRStore, XR } from '@react-three/xr'
 
 const store = createXRStore()
 
-export function App() {
+export default function App() {
   return (
     <>
       <button
