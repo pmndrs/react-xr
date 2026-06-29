@@ -60,6 +60,7 @@ export function App() {
 - 📱 [Dom Overlay](../tutorials/dom-overlay.md)
 - 🎯 [Hit Test](../tutorials/hit-test.md)
 - ⛨ [Guards](../tutorials/guards.md)
+- 🖼️ [Render Targets](../advanced/render-targets.md)
 
 ## External Tutorials
 
