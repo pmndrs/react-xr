@@ -94,6 +94,10 @@ export const PivotHandlesHandles = forwardRef<PivotHandlesHandlesImpl, PivotHand
       [disabled, scale, handles, hidden],
     )
     useEffect(
+      () => (hidden ? undefined : handles.scaleXYZ.bind(0xffffff, disabled ? disableProperties(scale) : scale)),
+      [disabled, scale, handles, hidden],
+    )
+    useEffect(
       () => (hidden ? undefined : handles.rotationX.bind(0xff2060, disabled ? disableProperties(rotation) : rotation)),
       [disabled, rotation, handles, hidden],
     )
