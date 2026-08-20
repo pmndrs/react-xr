@@ -31,41 +31,9 @@ jobs:
       # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#example-of-setting-an-output-parameter
       - id: set-base-path
         run: echo "BASE_PATH=${{ '/xr/docs' || steps.configurepages.outputs.base_path }}" >> "$GITHUB_OUTPUT"
-      - run: |
-          set -ex
-
-          docker run --rm --init \
-            -v "./$MDX":/app/docs \
-            -e BASE_PATH \
-            -e DIST_DIR="$MDX/out$BASE_PATH" \
-            -e MDX \
-            -e NEXT_PUBLIC_LIBNAME \
-            -e NEXT_PUBLIC_LIBNAME_SHORT \
-            -e NEXT_PUBLIC_LIBNAME_DOTSUFFIX_LABEL \
-            -e NEXT_PUBLIC_LIBNAME_DOTSUFFIX_HREF \
-            -e OUTPUT=export \
-            -e HOME_REDIRECT \
-            -e MDX_BASEURL \
-            -e SOURCECODE_BASEURL \
-            -e EDIT_BASEURL \
-            -e NEXT_PUBLIC_URL \
-            -e ICON \
-            -e LOGO \
-            -e GITHUB \
-            -e DISCORD \
-            -e THEME_PRIMARY \
-            -e THEME_SCHEME \
-            -e THEME_CONTRAST \
-            -e THEME_NOTE \
-            -e THEME_TIP \
-            -e THEME_IMPORTANT \
-            -e THEME_WARNING \
-            -e THEME_CAUTION \
-            -e CONTRIBUTORS_PAT \
-            ghcr.io/pmndrs/docs:2 npm run build
+      - run: npx -y @pmndrs/docs@4 build docs out --format website
         env:
           BASE_PATH: ${{ steps.set-base-path.outputs.BASE_PATH }}
-          MDX: 'docs'
           NEXT_PUBLIC_LIBNAME: 'xr'
           NEXT_PUBLIC_LIBNAME_SHORT: ''
           NEXT_PUBLIC_LIBNAME_DOTSUFFIX_LABEL: 'docs'
@@ -91,7 +59,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/out${{ steps.set-base-path.outputs.BASE_PATH }}
+          path: out
 
   examples:
     runs-on: ubuntu-latest
