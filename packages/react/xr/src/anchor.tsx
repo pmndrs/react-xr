@@ -120,5 +120,17 @@ export function useXRAnchor(): [
     [store],
   )
   useEffect(() => () => void cleanup.current?.(), [])
+  useEffect(
+    () =>
+      store.subscribe((state, prevState) => {
+        if (prevState.session == null || state.session != null) {
+          return
+        }
+        //the session already invalidated the anchor; anchor.delete() would throw, so just drop the reference
+        cleanup.current = undefined
+        setAnchor(undefined)
+      }),
+    [store],
+  )
   return [anchor, create]
 }
