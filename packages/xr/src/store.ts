@@ -335,6 +335,12 @@ export type XRStore<T extends XRElementImplementations> = Omit<StoreApi<XRState<
   enterAR(): Promise<XRSession | undefined>
   enterVR(): Promise<XRSession | undefined>
   /**
+   * subscribes to the session ending, both through calling `session.end()` and through hardware/OS triggered
+   * termination (e.g. the user removing the headset, the browser closing the session, ...)
+   * @returns a function to unsubscribe
+   */
+  onSessionEnd(callback: () => void): () => void
+  /**
    * update the hand configuration or implementation for both or only one hand
    */
   setHand(implementation: T['hand'], handedness?: XRHandedness): void
@@ -627,6 +633,13 @@ export function createXRStore<T extends XRElementImplementations>(options?: XRSt
     enterXR: (mode: XRSessionMode) => enterXRSession(domOverlayRoot, mode, options, xrManager),
     enterAR: () => enterXRSession(domOverlayRoot, 'immersive-ar', options, xrManager),
     enterVR: () => enterXRSession(domOverlayRoot, 'immersive-vr', options, xrManager),
+    onSessionEnd(callback: () => void) {
+      return store.subscribe((state, prevState) => {
+        if (prevState.session != null && state.session == null) {
+          callback()
+        }
+      })
+    },
     onBeforeFrame(scene: Object3D, camera: Camera, frame: XRFrame | undefined) {
       let update: Partial<Mutable<XRState<T>>> | undefined
       const referenceSpace = xrManager?.getReferenceSpace() ?? undefined
