@@ -244,14 +244,20 @@ export const XRLayerImplementation = forwardRef<
       if (resolvedSrc instanceof HTMLVideoElement || resolvedSrc instanceof WebGLRenderTarget) {
         return () => {
           store.removeLayerEntry(layerEntry)
-          layer.destroy()
+          //the session already invalidated the layer; layer.destroy() would throw, so just drop the reference
+          if (store.getState().session != null) {
+            layer.destroy()
+          }
         }
       }
       const cleanupXRImageLayer = setupXRImageLayer(renderer, store, layer, resolvedSrc)
       return () => {
         store.removeLayerEntry(layerEntry)
         cleanupXRImageLayer()
-        layer.destroy()
+        //the session already invalidated the layer; layer.destroy() would throw, so just drop the reference
+        if (store.getState().session != null) {
+          layer.destroy()
+        }
       }
     }, [
       originReferenceSpace,
@@ -270,6 +276,20 @@ export const XRLayerImplementation = forwardRef<
       src,
       store,
     ])
+    useEffect(
+      () =>
+        store.subscribe((state, prevState) => {
+          if (prevState.session == null || state.session != null) {
+            return
+          }
+          //the session already invalidated the layer; drop the stale reference before it gets read again
+          if (layerEntryRef.current != null) {
+            store.removeLayerEntry(layerEntryRef.current)
+            layerEntryRef.current = undefined
+          }
+        }),
+      [store, layerEntryRef],
+    )
 
     //update render order
     if (layerEntryRef.current != null) {
